@@ -38,10 +38,7 @@ def unpack_repo(owner_repo, default=None):
     """
 
     parts = owner_repo.split("/", 1)
-    if len(parts) == 2:
-        owner, repo = parts
-    else:
-        owner, repo = default, parts[0]
+    owner, repo = parts if len(parts) == 2 else (default, parts[0])
     return owner, repo
 
 
@@ -86,21 +83,18 @@ def parse_args(args=None):
 @lru_cache(16)
 def fetch_owners(login):
     """get all org owners."""
-    owners = set()
     org = gh().organization(login)
-    for user in org.members(role="admin"):
-        owners.add(user.login)
-    return owners
+    return {user.login for user in org.members(role="admin")}
 
 
 def fetch_admins(owner, repo):
     """get all repository admins."""
-    admins = set()
     repo = gh().repository(owner, repo)
-    for collaborator in repo.collaborators():
-        if collaborator.permissions["admin"]:
-            admins.add(collaborator.login)
-    return admins
+    return {
+        collaborator.login
+        for collaborator in repo.collaborators()
+        if collaborator.permissions["admin"]
+    }
 
 
 def process_repo(owner, repo):
@@ -123,7 +117,7 @@ def email_of(login):
     """
     u = gh().user(login)
     pmo_url = f"https://people.mozilla.org/s?query={login}&who=all"
-    email = u.email if u.email else ""
+    email = u.email or ""
     return f"{email},{pmo_url}"
 
 
@@ -134,7 +128,7 @@ def main(args=None):
         admins = process_repo(owner_name, repo_name)
         print(f"{owner_name}/{repo_name}:")
         for login in admins:
-            output = login if not args.email else email_of(login)
+            output = email_of(login) if args.email else login
             print(output)
 
 

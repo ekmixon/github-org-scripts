@@ -9,14 +9,14 @@ CREDENTIALS_FILE = ".credentials"
 
 
 def get_token():
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_PAT")
-    if not token:
+    if token := os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_PAT"):
+        return token
+    else:
         raise KeyError(
             """ERROR - GitHub token must be provided via environment"""
             """ variable "GITHUB_TOKEN" or "GITHUB_PAT"."""
             """ Please delete any old ".credentials" file."""
         )
-    return token
 
 
 # get_token()
@@ -24,8 +24,7 @@ def get_token():
 
 def get_github3_client():
     token = get_token()
-    gh = login(token=token)
-    return gh
+    return login(token=token)
 
 
 def sleep_if_rate_limited(gh, verbose=False):

@@ -35,8 +35,7 @@ def lock_pr(repo, number):
     # an issue, and use that interface (which still only supports lock, and not
     # lock reason)
     pr_as_issue = repo.issue(number)
-    success = pr_as_issue.lock()
-    return success
+    return pr_as_issue.lock()
 
 
 def close_prs(
@@ -78,8 +77,7 @@ def close_prs(
                         pr.number,
                     )
                 )
-        else:
-            logger.debug("no open PR's in %s!", repo.name)
+        logger.debug("no open PR's in %s!", repo.name)
     except AttributeError:
         logger.error("No access to repository %s/%s", organization, repository)
         update_exit_code(1)

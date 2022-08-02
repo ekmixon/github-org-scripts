@@ -62,10 +62,7 @@ def show_info(gh, org_name, show_owners=False, show_emails=False, show_json=Fals
             for owner in org.members(role="admin"):
                 owner.refresh()  # get name
                 name = owner.name or "<hidden>"
-                if show_emails:
-                    email = " " + (owner.email or "<email hidden>")
-                else:
-                    email = ""
+                email = " " + (owner.email or "<email hidden>") if show_emails else ""
                 print(f"                  {name} ({owner.login}{email})")
     except Exception as e:
         logger.error("Error %s obtaining data for org '%s'", str(e), str(org))
@@ -121,8 +118,8 @@ def parse_args():
 class MyOrganizationsIterator(github3.structs.GitHubIterator):
     def __init__(self, me):
         super().__init__(
-            count=-1,  # get all
-            url=me.session.base_url + "/user/orgs",
+            count=-1,
+            url=f"{me.session.base_url}/user/orgs",
             cls=github3.orgs.Organization,
             session=me.session,
         )
@@ -142,30 +139,20 @@ def print_limits(e=None, verbose=False):
         reset_at = resources[reset]["reset"]
         reset_max = max(reset_at, reset_max)
         if not resources[reset]["remaining"]:
-            reset_min = min(reset_at, reset_min if reset_min else reset_at)
+            reset_min = min(reset_at, reset_min or reset_at)
             if verbose:
-                print("EXPIRED for {} {}".format(reset, resources[reset]["remaining"]))
-        else:
-            if verbose:
-                print(
-                    "remaining for {} {}".format(reset, resources[reset]["remaining"])
-                )
+                print(f'EXPIRED for {reset} {resources[reset]["remaining"]}')
+        elif verbose:
+            print(f'remaining for {reset} {resources[reset]["remaining"]}')
 
     if not reset_min:
         print("No limits reached currently.")
     else:
         print(
-            "Minimum reset at {} UTC ({})".format(
-                time.asctime(time.gmtime(reset_min)),
-                time.asctime(time.localtime(reset_min)),
-            )
+            f"Minimum reset at {time.asctime(time.gmtime(reset_min))} UTC ({time.asctime(time.localtime(reset_min))})"
         )
-    print(
-        "All reset at {} UTC".format(
-            time.asctime(time.gmtime(reset_max)),
-            time.asctime(time.localtime(reset_max)),
-        )
-    )
+
+    print(f"All reset at {time.asctime(time.gmtime(reset_max))} UTC")
 
 
 def main():

@@ -19,8 +19,9 @@ def parse_timestamp(tst):
 if __name__ == "__main__":
     headers = {
         "Accept": "application/vnd.github.moondragon+json",
-        "Authorization": "token %s" % get_token(),
+        "Authorization": f"token {get_token()}",
     }
+
 
     if os.path.exists(CACHEFILE):
         repos = json.loads(open(CACHEFILE).read())
@@ -31,18 +32,18 @@ if __name__ == "__main__":
 
     else:
         repos = []
-        repos_api = "https://api.github.com/orgs/%s/repos" % "mozilla"
+        repos_api = 'https://api.github.com/orgs/mozilla/repos'
         while True:
             resp = requests.get(repos_api, headers=headers)
             repos += resp.json()
 
-            # Next page.
-            next_match = re.search(r'<([^>]+)>; rel="next"', resp.headers["Link"])
-            if not next_match:
-                break
-            else:
-                repos_api = next_match.group(1)
+            if next_match := re.search(
+                r'<([^>]+)>; rel="next"', resp.headers["Link"]
+            ):
+                repos_api = next_match[1]
 
+            else:
+                break
         open(CACHEFILE, "w").write(json.dumps(repos))
 
     # Find small/empty repos older than a month.
@@ -59,12 +60,11 @@ if __name__ == "__main__":
     ]
     small_repos.sort(key=lambda r: r["name"])
     print(
-        "## {} small/empty repositories older than {} days".format(
-            len(small_repos), SMALL_MINAGE
-        )
+        f"## {len(small_repos)} small/empty repositories older than {SMALL_MINAGE} days"
     )
+
     for repo in small_repos:
-        print(repo["name"], ":", repo["size"], "(%s)" % repo["updated_at"])
+        print(repo["name"], ":", repo["size"], f'({repo["updated_at"]})')
 
     print("\n\n")
 
@@ -80,9 +80,8 @@ if __name__ == "__main__":
     ]
     old_repos.sort(key=lambda r: r["name"])
     print(
-        "## {} repos touched less recently than {} days ago.".format(
-            len(old_repos), UNTOUCHED_MINAGE
-        )
+        f"## {len(old_repos)} repos touched less recently than {UNTOUCHED_MINAGE} days ago."
     )
+
     for repo in old_repos:
         print(repo["name"], ":", repo["updated_at"])

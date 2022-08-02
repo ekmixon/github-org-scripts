@@ -16,7 +16,6 @@ def get_files(repo, directory):
         response = repo.file_contents(directory)
     except UnprocessableResponseBody as e:
         response = e
-        pass
     except NotFoundError:
         print(f"\nNo data for {repo.full_name}! (maybe empty)")
         return names
@@ -39,11 +38,7 @@ if __name__ == "__main__":
 
     repos = gh.organization("mozilla-services").repositories(type="sources")
     for repo in repos:
-        # All files in this repo's default branch.
-        # {'filename.md': Content(), 'filename2.txt': Contents(), ...}
-        files = get_files(repo, "/")
-
-        if files:
+        if files := get_files(repo, "/"):
             contrib_files = [
                 f for f in list(files.keys()) if f.startswith("CONTRIBUTING")
             ]

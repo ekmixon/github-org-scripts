@@ -34,9 +34,7 @@ logger = logging.getLogger(__name__)
 
 def remove_login_from_org(login, org_name):
     org = gh.organization(org_name)
-    user = org.is_member(login)
-    if user:
-        # just remove - no longer any reason to check for type of membership
+    if user := org.is_member(login):
         if not dry_run:
             if org.remove_membership(login):
                 logger.info(f"removed {login} from {org_name}")
@@ -45,17 +43,13 @@ def remove_login_from_org(login, org_name):
     # remove any outside collaborator settings
     # HACK - no method, so hack the URL and send it directly
     oc_url = org._json_data["issues_url"].replace("issues", "outside_collaborators")
-    delete_url = oc_url + "/" + login
+    delete_url = f"{oc_url}/{login}"
     if not dry_run:
         response = org._delete(delete_url)
         if response.status_code not in [
             204,
         ]:
-            logger.error(
-                "ERROR: bad result ({}) from {}".format(
-                    response.status_code, delete_url
-                )
-            )
+            logger.error(f"ERROR: bad result ({response.status_code}) from {delete_url}")
     logger.info(f"removed {login} as outside collaborator via {delete_url}")
 
 
@@ -77,10 +71,7 @@ def parse_args():
         "--cwd", "-R", help="repo to use", dest="repos", action="append"
     )
 
-    # done with per-run setup
-
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

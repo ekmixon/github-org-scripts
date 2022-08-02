@@ -49,8 +49,7 @@ logger = logging.getLogger(__name__)
 def get_cutoff_time(cutoff_delta):
     k, v = cutoff_delta.split("=", 2)
     args = {k: int(v)}
-    ok_after = arrow.now().replace(**args)
-    return ok_after
+    return arrow.now().replace(**args)
 
 
 def check_invites(gh, org_name, cancel=False, cutoff_delta="weeks=-2"):
@@ -73,8 +72,7 @@ def check_invites(gh, org_name, cancel=False, cutoff_delta="weeks=-2"):
                     end=line_end,
                 )
                 if cancel:
-                    success = org.remove_membership(invite.id)
-                    if success:
+                    if success := org.remove_membership(invite.id):
                         print("Cancelled")
                     else:
                         print("FAILED to cancel")
@@ -108,9 +106,8 @@ def check_invites(gh, org_name, cancel=False, cutoff_delta="weeks=-2"):
                         if cancel:
                             # Deletion not directly supported, so hack url &
                             # use send delete verb directly
-                            delete_url = repo.url + "/invitations/" + str(invite.id)
-                            success = repo._delete(delete_url)
-                            if success:
+                            delete_url = f"{repo.url}/invitations/{str(invite.id)}"
+                            if success := repo._delete(delete_url):
                                 print("Cancelled")
                             else:
                                 print("FAILED to cancel")
@@ -125,9 +122,7 @@ def check_invites(gh, org_name, cancel=False, cutoff_delta="weeks=-2"):
                 # just report, unless it's a security repo
                 if "-ghsa-" not in repo.name:
                     logger.warning(
-                        "Got 404 for invitation in {}, may be unhandled inviations. '{}'".format(
-                            repo.name, str(e)
-                        )
+                        f"Got 404 for invitation in {repo.name}, may be unhandled inviations. '{str(e)}'"
                     )
 
 

@@ -16,10 +16,9 @@ def get_org_access(login, json_file):
     cmd = [
         "jq",
         "-rc",
-        """ .[] | select(.actor == "{}") | select(.action|test("org.")) | [(.created_at/1000 | todate), .actor, .action] | @csv """.format(
-            login
-        ),
+        f""" .[] | select(.actor == "{login}") | select(.action|test("org.")) | [(.created_at/1000 | todate), .actor, .action] | @csv """,
     ]
+
     with open(json_file) as json:
         csv_output = subprocess.check_output(  # nosec
             cmd, shell=False, stderr=subprocess.STDOUT, stdin=json
@@ -40,8 +39,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--org", default="mozilla", help="GitHub org to process")
     parser.add_argument("audit_file", help="JSON audit log to process")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

@@ -25,10 +25,8 @@ def main(argv):
 
     params = {"state": "closed", "per_page": 100}
 
-    all_pulls_url = "{}?{}".format(
-        f"https://api.github.com/repos/{owner}/{repo}/pulls",
-        urllib.parse.urlencode(params),
-    )
+    all_pulls_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?{urllib.parse.urlencode(params)}"
+
     resp = requests.get(all_pulls_url)
 
     all_pulls = resp.json()
@@ -38,10 +36,10 @@ def main(argv):
             created_at = _parse_github_datetime(pull["created_at"])
             merged_at = _parse_github_datetime(pull["merged_at"])
             review_time = merged_at - created_at
-            print("Pull {} review took {} to merge".format(pull["id"], review_time))
+            print(f'Pull {pull["id"]} review took {review_time} to merge')
             review_times.append(review_time)
 
-    print("Total Average Review Time (%s pulls): " % len(review_times))
+    print(f"Total Average Review Time ({len(review_times)} pulls): ")
     print(reduce(lambda x, y: x + y, review_times) / len(review_times))
 
 

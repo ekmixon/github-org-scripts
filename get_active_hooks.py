@@ -23,15 +23,14 @@ logger = logging.getLogger(__name__)
 def wait_for_karma(gh, min_karma=25, msg=None):
     while gh:
         core = gh.rate_limit()["resources"]["core"]
-        if core["remaining"] < min_karma:
-            now = time.time()
-            nap = max(core["reset"] - now, 0.1)
-            logger.info("napping for %s seconds", nap)
-            if msg:
-                logger.info(msg)
-            time.sleep(nap)
-        else:
+        if core["remaining"] >= min_karma:
             break
+        now = time.time()
+        nap = max(core["reset"] - now, 0.1)
+        logger.info("napping for %s seconds", nap)
+        if msg:
+            logger.info(msg)
+        time.sleep(nap)
 
 
 def get_hook_name(hook):
@@ -40,19 +39,13 @@ def get_hook_name(hook):
     if not isinstance(hook, dict):
         hook = hook.as_dict()
 
-    # if hook['name'] == "web", then this is a web hook, and there can be
-    # several per repo. The unique part is the hook['config']['url'], which
-    # may contain sensitive info (including basic login data), so just
-    # grab scheme, hostname, and port.
     if hook["name"] != "web":
-        name = hook["name"]
-    else:
-        url = hook["config"]["url"]
-        parts = urllib.parse.urlparse(url)
+        return hook["name"]
+    url = hook["config"]["url"]
+    parts = urllib.parse.urlparse(url)
         # port can be None, which prints funny, but is good enough for
         # identification.
-        name = f"{parts.scheme}://{parts.hostname}:{parts.port}"
-    return name
+    return f"{parts.scheme}://{parts.hostname}:{parts.port}"
 
 
 def report_hooks(

@@ -26,13 +26,11 @@ class LFS_Usage(GitHub2FA):
     # no init needed
 
     def get_values(self, selector):
-        # get the "line" and parse it
-        e = self.get_element(selector)
-        if e:
+        if e := self.get_element(selector):
             text = e.text
-            # line format: 13,929.6 GB of 17,400 GB (29 data packs)
-            match = re.match(r"""\D*(?P<used>\S+)\D+(?P<purchased>\S+)""", text)
-            if match:
+            if match := re.match(
+                r"""\D*(?P<used>\S+)\D+(?P<purchased>\S+)""", text
+            ):
                 d = match.groupdict()
                 used = float(d["used"].replace(",", ""))
                 purchased = float(d["purchased"].replace(",", ""))

@@ -43,12 +43,11 @@ class Audit_Log_Download(GitHub2FA):
         return fx_profile
 
     def get_values(self, selector):
-        # get the "line" and parse it
-        e = self.get_element(selector)
-        if e:
+        if e := self.get_element(selector):
             text = e.text
-            match = re.match(r"""\D+(?P<used>\S+)\D+(?P<purchased>\S+)""", text)
-            if match:
+            if match := re.match(
+                r"""\D+(?P<used>\S+)\D+(?P<purchased>\S+)""", text
+            ):
                 d = match.groupdict()
                 used = float(d["used"].replace(",", ""))
                 purchased = float(d["purchased"].replace(",", ""))
@@ -62,7 +61,6 @@ class Audit_Log_Download(GitHub2FA):
         # Simplest approach (??) is to build URL from form ourselves, and
         # download. Avoids the system dialogs
         form = self.get_element(form_selector)
-        results = {}
         data = {}
         allInputs = form.find_elements_by_xpath(".//INPUT")
         for web_element in [x for x in allInputs if x.tag_name == "input"]:
@@ -71,9 +69,7 @@ class Audit_Log_Download(GitHub2FA):
             data[name] = value
         # build url
         file_url = form.get_attribute("action")
-        results["action_url"] = file_url
-        results["body_data"] = data
-
+        results = {"action_url": file_url, "body_data": data}
         # make call & write to file
         # Have to get there by clicking -- can't click directly as it's not
         # visible.
